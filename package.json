@@ -1,41 +1,65 @@
 {
   "name": "vscode-phpunit-in-docker",
-  "displayName": "vscode-phpunit-in-docker",
-  "description": "",
+  "displayName": "PHPUnit in Docker",
+  "description": "Run PHPUnit tests inside Docker containers",
   "version": "0.0.1",
+  "publisher": "your-publisher-name",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Michael-vb/vscode-phpunit-in-docker"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
   "categories": [
-    "Other"
+    "Testing"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "vscode-phpunit-in-docker.helloWorld",
-        "title": "Hello World"
+    "configuration": {
+      "title": "PHPUnit in Docker",
+      "properties": {
+        "phpunitDocker.containerName": {
+          "type": "string",
+          "default": "",
+          "description": "Name of the Docker container where tests should run",
+          "order": 1
+        },
+        "phpunitDocker.containerPath": {
+          "type": "string",
+          "default": "/var/www/app",
+          "description": "Path inside the Docker container where the project is mounted"
+        },
+        "phpunitDocker.phpunitPath": {
+          "type": "string",
+          "default": "vendor/bin/phpunit",
+          "description": "Path to PHPUnit executable relative to project root"
+        },
+        "phpunitDocker.testFilePattern": {
+          "type": "string",
+          "default": "**/*Test.php",
+          "description": "Pattern to identify test files"
+        }
       }
-    ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "lint": "eslint src --ext ts"
   },
   "devDependencies": {
     "@types/vscode": "^1.96.0",
-    "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/mocha": "^10.0.6",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
     "eslint": "^9.16.0",
-    "typescript": "^5.7.2",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "typescript": "^5.7.2"
   }
 }
