@@ -3,7 +3,7 @@
   "displayName": "PHPUnit in Docker",
   "description": "Run PHPUnit tests inside Docker containers",
   "version": "0.0.1",
-  "publisher": "your-publisher-name",
+  "publisher": "xMIkeXeeioi",
   "repository": {
     "type": "git",
     "url": "https://github.com/Michael-vb/vscode-phpunit-in-docker"
