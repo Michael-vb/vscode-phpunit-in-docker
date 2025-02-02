@@ -47,13 +47,15 @@ export class DockerPhpUnitTestController {
             }
         );
 
-        // Watch for PHP files
-        const watcher = vscode.workspace.createFileSystemWatcher('**/*.php');
+        const config = vscode.workspace.getConfiguration('phpunitDocker');
+        const testFilePattern = config.get<string>('testFilePattern') || '**/*Test.php';
+        this.outputChannel.appendLine(`Using file watcher pattern: ${testFilePattern}`);
+        const watcher = vscode.workspace.createFileSystemWatcher(testFilePattern);
         this.disposables.push(watcher);
 
-        watcher.onDidChange(() => this.discoverAllTests());
-        watcher.onDidCreate(() => this.discoverAllTests());
-        watcher.onDidDelete(() => this.discoverAllTests());
+        watcher.onDidChange(uri => this.updateTestForFile(uri));
+        watcher.onDidCreate(uri => this.addTestForFile(uri));
+        watcher.onDidDelete(uri => this.removeTestForFile(uri));
 
         // Initial test discovery
         this.discoverAllTests();
@@ -91,6 +93,11 @@ export class DockerPhpUnitTestController {
 
     private async resolveTestMethods(testItem: vscode.TestItem) {
         if (!testItem.uri) { return; }
+        
+        // Clear any existing children to avoid duplicates if the method is called repeatedly
+        if (testItem.children) {
+            testItem.children.replace([]);
+        }
 
         try {
             this.outputChannel.appendLine(`Resolving methods for test file: ${testItem.uri.fsPath}`);
@@ -246,6 +253,36 @@ export class DockerPhpUnitTestController {
         }
     
         run.end();
+    }
+
+    private async addTestForFile(uri: vscode.Uri): Promise<void> {
+        this.outputChannel.appendLine(`Adding test file: ${uri.fsPath}`);
+        const testItem = this.testController.createTestItem(
+            uri.fsPath,
+            path.basename(uri.fsPath),
+            uri
+        );
+        testItem.canResolveChildren = true;
+        this.testController.items.add(testItem);
+        await this.resolveTestMethods(testItem);
+    }
+
+    private async updateTestForFile(uri: vscode.Uri): Promise<void> {
+        this.outputChannel.appendLine(`Updating test file: ${uri.fsPath}`);
+        const testItem = this.testController.items.get(uri.fsPath);
+        if (testItem) {
+            // Clear existing test methods to avoid duplicates.
+            testItem.children.replace([]);
+            await this.resolveTestMethods(testItem);
+        } else {
+            // If the test item doesn't exist, add it.
+            await this.addTestForFile(uri);
+        }
+    }
+
+    private removeTestForFile(uri: vscode.Uri): void {
+        this.outputChannel.appendLine(`Removing test file: ${uri.fsPath}`);
+        this.testController.items.delete(uri.fsPath);
     }
 
     dispose() {
