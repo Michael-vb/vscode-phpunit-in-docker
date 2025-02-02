@@ -4,6 +4,8 @@ This extension was developed with the assistance of AI tools.
 
 Run PHPUnit tests inside Docker containers directly from VS Code's Test Explorer UI.
 
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/xMIkeXeeioi.vscode-phpunit-in-docker)](https://marketplace.visualstudio.com/items?itemName=xMIkeXeeioi.vscode-phpunit-in-docker)
+
 ## Features
 
 - 🐳 Execute PHPUnit tests in Docker containers
@@ -15,7 +17,7 @@ Run PHPUnit tests inside Docker containers directly from VS Code's Test Explorer
 
 ## Installation
 
-1. Install the extension from VS Code Marketplace
+1. Install the extension from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=xMIkeXeeioi.vscode-phpunit-in-docker)
 2. Ensure your Docker container is running with your PHP project mounted
 3. Configure the extension settings (see below)
 
