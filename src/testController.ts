@@ -221,32 +221,40 @@ export class DockerPhpUnitTestController {
                     output = error.message || 'Test execution failed';
                 }
 
-                // Parse output for all failing assertions starting with "Failed asserting"
+                // New error parsing logic to handle multiple error blocks formatted with numbering (e.g., "1) ...", "2) ...")
                 const messages: vscode.TestMessage[] = [];
-                const assertionRegex = /Failed asserting[\s\S]*?(?=Failed asserting|$)/g;
-                let match: RegExpExecArray | null;
-                while ((match = assertionRegex.exec(output)) !== null) {
-                    const messageText = match[0].trim();
-                    const testMessage = new vscode.TestMessage(messageText);
-                    // Attempt to extract a file location (e.g., "ExampleTest.php:25")
-                    const locationRegex = /([^:\s]+\.php):(\d+)/;
-                    const locationMatch = locationRegex.exec(messageText);
-                    if (locationMatch) {
-                        const line = parseInt(locationMatch[2], 10) - 1;
-                        testMessage.location = new vscode.Location(test.uri!, new vscode.Position(line, 0));
-                    } else {
-                        testMessage.location = new vscode.Location(test.uri!, new vscode.Position(0, 0));
-                    }
-                    messages.push(testMessage);
+                // Split output by error blocks starting with a number followed by ')'
+                let errorBlocks = output.split(/^\d+\)/m).map(block => block.trim()).filter(block => block.length > 0);
+                // If multiple blocks exist and the first block doesn't include a file location, remove it.
+                if (errorBlocks.length > 1 && !/\.php:\d+/.test(errorBlocks[0])) {
+                    errorBlocks.shift();
                 }
+                
+                if (errorBlocks.length > 0) {
+                    for (const block of errorBlocks) {
+                        // Split the block into non-empty lines
+                        const lines = block.split(/\r?\n/).filter(line => line.trim() !== '');
+                        // Expecting at least two lines: the test id and then the main error message
+                        let mainMessage = (lines.length > 1) ? lines[1] : lines[0];
 
-                // Fallback if no individual assertion errors were found in the output
-                if (messages.length === 0) {
+                        const testMessage = new vscode.TestMessage(mainMessage + "\n\n\n" + block);
+                        const locationRegex = /([^\s]+\.php):(\d+)/;
+                        const locationMatch = block.match(locationRegex);
+                        if (locationMatch && test.uri) {
+                            const lineNum = parseInt(locationMatch[2], 10) - 1;
+                            testMessage.location = new vscode.Location(test.uri, new vscode.Position(lineNum, 0));
+                        } else {
+                            testMessage.location = new vscode.Location(test.uri!, new vscode.Position(0, 0));
+                        }
+                        messages.push(testMessage);
+                    }
+                } else {
+                    // Fallback if no error blocks are found
                     const testMessage = new vscode.TestMessage(output);
                     testMessage.location = new vscode.Location(test.uri!, new vscode.Position(0, 0));
                     messages.push(testMessage);
                 }
-
+    
                 run.failed(test, messages);
                 this.outputChannel.appendLine(`Test execution error: ${output}`);
             }
