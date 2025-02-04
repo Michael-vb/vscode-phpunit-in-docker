@@ -2,7 +2,7 @@
   "name": "vscode-phpunit-in-docker",
   "displayName": "PHPUnit in Docker",
   "description": "Run PHPUnit tests inside Docker containers",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "icon": "icon.png",
   "publisher": "xMIkeXeeioi",
   "repository": {
@@ -31,7 +31,7 @@
         },
         "phpunitDocker.containerPath": {
           "type": "string",
-          "default": "/var/www/app",
+          "default": "/var/www",
           "description": "Path inside the Docker container where the project is mounted"
         },
         "phpunitDocker.phpunitPath": {

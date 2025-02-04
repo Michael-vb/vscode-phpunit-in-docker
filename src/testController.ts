@@ -149,6 +149,9 @@ export class DockerPhpUnitTestController {
         const config = vscode.workspace.getConfiguration('phpunitDocker');
         
         const containerName = config.get<string>('containerName');
+        const containerPath = config.get<string>('containerPath') || '/var/www';
+        const phpunitPath = config.get<string>('phpunitPath') || 'vendor/bin/phpunit';
+
         if (!containerName) {
             const message = 'Docker container name is not configured. Please configure it in settings.';
             vscode.window.showErrorMessage(message, 'Open Settings').then(selection => {
@@ -160,8 +163,29 @@ export class DockerPhpUnitTestController {
             return;
         }
 
-        const containerPath = config.get<string>('containerPath') || '/var/www/app';
-        const phpunitPath = config.get<string>('phpunitPath') || 'vendor/bin/phpunit';
+        // Add debug session check and startup
+        if (isDebug) {
+            const debugSession = vscode.debug.activeDebugSession;
+            if (!debugSession) {
+                try {
+                    this.outputChannel.appendLine('Starting debug session...');
+                    const debugConfig = config.get<object>('debugConfiguration') || {
+                        type: 'php',
+                        name: 'Listen for Xdebug',
+                        request: 'launch',
+                        port: 9003,
+                        pathMappings: {
+                            [containerPath]: "${workspaceFolder}"
+                        }
+                    };
+                    await vscode.debug.startDebugging(undefined, debugConfig as any);
+                } catch (error) {
+                    this.outputChannel.appendLine(`Failed to start debug session: ${error}`);
+                    run.end();
+                    return;
+                }
+            }
+        }
 
         // Get tests to run
         const testsToRun: vscode.TestItem[] = [];
