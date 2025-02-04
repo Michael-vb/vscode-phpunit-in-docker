@@ -121,8 +121,20 @@ export class DockerPhpUnitTestController {
             while ((match = methodRegex.exec(content)) !== null) {
                 const methodName = match[1];
                 this.outputChannel.appendLine(`Found test method: ${methodName}`);
+                
+                // Check for @dataProvider annotation in lines before the method
+                const methodStartIndex = match.index;
+                const previousLines = content.substring(0, methodStartIndex).split('\n');
+                const lastFewLines = previousLines.slice(-3).join('\n'); // Check last 3 lines for annotation
+                const hasDataProvider = /@dataProvider/.test(lastFewLines);
+                
+                // Add @{number} to id if method has @dataProvider
+                const methodId = hasDataProvider ? 
+                    `${testItem.id}::${methodName}@.+` :
+                    `${testItem.id}::${methodName}$`;
+                
                 const methodItem = this.testController.createTestItem(
-                    `${testItem.id}::${methodName}`,
+                    methodId,
                     methodName,
                     testItem.uri
                 );
@@ -213,10 +225,12 @@ export class DockerPhpUnitTestController {
                 }
                 if (test.id.includes('::')) {
                     const [, methodName] = test.id.split('::');
-                    phpunitCommand += ` --filter "${methodName}$" ${containerFilePath}`;
+                    phpunitCommand += ` --filter "${methodName}" ${containerFilePath}`;
                 } else {
                     phpunitCommand += ` ${containerFilePath}`;
                 }
+
+                this.outputChannel.appendLine(`Executing command: ${phpunitCommand}`);
     
                 // Execute the command
                 const { stdout, stderr } = await execAsync(
