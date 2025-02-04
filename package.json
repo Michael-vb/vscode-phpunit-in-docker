@@ -2,7 +2,7 @@
   "name": "vscode-phpunit-in-docker",
   "displayName": "PHPUnit in Docker",
   "description": "Run PHPUnit tests inside Docker containers",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "icon": "icon.png",
   "publisher": "xMIkeXeeioi",
   "repository": {

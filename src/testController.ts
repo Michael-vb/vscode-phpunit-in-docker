@@ -234,17 +234,13 @@ export class DockerPhpUnitTestController {
     
                 // Execute the command
                 const { stdout, stderr } = await execAsync(
-                    `docker exec ${containerName} ${phpunitCommand}`
+                    `docker exec -t ${containerName} ${phpunitCommand}`
                 );
-    
+
+                run.appendOutput(`${stdout}`);
+
                 // If command succeeds, mark test as passed
                 run.passed(test);
-    
-                this.outputChannel.appendLine('Test output:');
-                this.outputChannel.appendLine(stdout);
-                if (stderr) {
-                    this.outputChannel.appendLine(stderr);
-                }
             } catch (err) {
                 // Capture both stdout and stderr from the error (if available) to show detailed output
                 const error = err as any;
@@ -258,6 +254,7 @@ export class DockerPhpUnitTestController {
                 if (!output) {
                     output = error.message || 'Test execution failed';
                 }
+                run.appendOutput(`${output}`);
 
                 // New error parsing logic to handle multiple error blocks formatted with numbering (e.g., "1) ...", "2) ...")
                 const messages: vscode.TestMessage[] = [];
