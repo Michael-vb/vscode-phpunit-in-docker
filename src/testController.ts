@@ -164,6 +164,9 @@ export class DockerPhpUnitTestController {
         const containerPath = config.get<string>('containerPath') || '/var/www';
         const phpunitPath = config.get<string>('phpunitPath') || 'vendor/bin/phpunit';
 
+        // Add variable to track debug session we started
+        let debugSessionToStop: vscode.DebugSession | undefined;
+
         if (!containerName) {
             const message = 'Docker container name is not configured. Please configure it in settings.';
             vscode.window.showErrorMessage(message, 'Open Settings').then(selection => {
@@ -175,7 +178,6 @@ export class DockerPhpUnitTestController {
             return;
         }
 
-        // Add debug session check and startup
         if (isDebug) {
             const debugSession = vscode.debug.activeDebugSession;
             if (!debugSession) {
@@ -191,6 +193,8 @@ export class DockerPhpUnitTestController {
                         }
                     };
                     await vscode.debug.startDebugging(undefined, debugConfig as any);
+                    // Store reference to the session we started
+                    debugSessionToStop = vscode.debug.activeDebugSession;
                 } catch (error) {
                     this.outputChannel.appendLine(`Failed to start debug session: ${error}`);
                     run.end();
@@ -296,6 +300,17 @@ export class DockerPhpUnitTestController {
         }
     
         run.end();
+
+        // Stop debug session if we started it
+        if (debugSessionToStop) {
+            try {
+                this.outputChannel.appendLine('Stopping debug session...');
+                await vscode.debug.stopDebugging(debugSessionToStop);
+                this.outputChannel.appendLine('Debug session stopped');
+            } catch (error) {
+                this.outputChannel.appendLine(`Error stopping debug session: ${error}`);
+            }
+        }
     }
 
     private async addTestForFile(uri: vscode.Uri): Promise<void> {
