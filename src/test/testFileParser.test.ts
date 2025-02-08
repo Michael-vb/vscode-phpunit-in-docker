@@ -96,8 +96,8 @@ suite('TestFileParser', () => {
         await parser.parseTestFile(mockTestItem);
 
         assert.strictEqual(addStub.callCount, 2);
-        assert.strictEqual(addStub.firstCall.args[0].id.includes('@'), true); // Method with provider
-        assert.strictEqual(addStub.secondCall.args[0].id.endsWith('$'), true); // Method without provider
+        assert.strictEqual(addStub.firstCall.args[0].id.endsWith('testWithProvider'), true); // Method with provider
+        assert.strictEqual(addStub.secondCall.args[0].id.endsWith('testWithoutProvider$'), true); // Method without provider
     });
 
     test('should handle file read errors gracefully', async () => {

@@ -40,7 +40,7 @@ export class TestFileParser {
                 const hasDataProvider = /@dataProvider/.test(lastFewLines);
                 
                 const methodId = hasDataProvider ? 
-                    `${testItem.id}::${methodName}@.+` :
+                    `${testItem.id}::${methodName}`:
                     `${testItem.id}::${methodName}$`;
                 
                 const methodItem = this.testController.createTestItem(
