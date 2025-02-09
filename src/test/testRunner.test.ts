@@ -146,4 +146,47 @@ suite('TestRunner', () => {
         sinon.assert.calledWith(run.failed, sinon.match.same(testItem));
         sinon.assert.calledOnce(run.end);
     });
+
+    test('runTests should normalize container paths in output', async () => {
+        // Mock workspace configuration
+        sandbox.stub(vscode.workspace, 'getConfiguration')
+            .returns({
+                get: sandbox.stub().callsFake((key: string) => {
+                    if (key === 'containerName') {return 'test-container';};
+                    if (key === 'containerPath') {return '/var/www';};
+                    if (key === 'phpunitPath') {return 'vendor/bin/phpunit';};
+                    return undefined;
+                })
+            } as any);
+
+        const testItem = {
+            id: 'TestClass::testMethod',
+            uri: vscode.Uri.file('/workspace/tests/TestClass.php')
+        } as vscode.TestItem;
+
+        sandbox.stub(vscode.workspace, 'asRelativePath')
+            .returns('tests/TestClass.php');
+
+        // Mock exec with output containing container paths
+        const execStub = sandbox.stub().rejects({
+            message: 'Test failed',
+            stdout: 'Failed asserting that false is true in /var/www/tests/TestClass.php:123',
+            stderr: ''
+        });
+        testRunner.setExecCommand(execStub);
+
+        const request = {
+            include: [testItem]
+        } as unknown as vscode.TestRunRequest;
+        const token = { isCancellationRequested: false } as vscode.CancellationToken;
+
+        await testRunner.runTests(request, token, false);
+
+        // Verify that container paths were removed from output
+        const run = (testController.createTestRun as sinon.SinonStub).getCall(0).returnValue;
+        sinon.assert.calledWith(
+            run.appendOutput,
+            sinon.match((output: string) => output.includes('tests/TestClass.php:123') && !output.includes('/var/www/'))
+        );
+    });
 });

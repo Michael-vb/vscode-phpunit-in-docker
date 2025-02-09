@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
 import { TestErrorParser } from './testErrorParser';
+import { normalizeContainerPaths } from './utils/pathNormalizer';
 
 export class TestRunner {
     private errorParser: TestErrorParser;
@@ -128,15 +129,18 @@ export class TestRunner {
                     `docker exec -t ${options.containerName} ${phpunitCommand}`
                 );
 
-                run.appendOutput(`${stdout}`);
+                const normalizedOutput = normalizeContainerPaths(stdout, options.containerPath);
+                run.appendOutput(normalizedOutput);
                 run.passed(test);
+                this.outputChannel.appendLine(`Test execution:\n${stdout}`); // original output
             } catch (err: any) {
                 const output = this.errorParser.getErrorOutput(err);
-                run.appendOutput(`${output}`);
+                const normalizedOutput = normalizeContainerPaths(output, options.containerPath);
+                run.appendOutput(normalizedOutput);
 
-                const messages = this.errorParser.parseErrorMessages(output, test);
+                const messages = this.errorParser.parseErrorMessages(normalizedOutput, test);
                 run.failed(test, messages);
-                this.outputChannel.appendLine(`Test execution error: ${output}`);
+                this.outputChannel.appendLine(`Test execution error:\n${output}`); // original output
             }
         }
     }
