@@ -110,7 +110,7 @@ export class TestRunner {
             run.started(test);
             try {
                 const relativePath = vscode.workspace.asRelativePath(test.uri!);
-                const containerFilePath = path.join(options.containerPath, relativePath);
+                const containerFilePath = path.posix.join(options.containerPath, relativePath);
                 
                 let phpunitCommand = `php ${options.phpunitPath}`;
                 if (options.isDebug) {
