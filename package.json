@@ -2,7 +2,7 @@
   "name": "vscode-phpunit-in-docker",
   "displayName": "PHPUnit in Docker",
   "description": "Run PHPUnit tests inside Docker containers",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "icon": "icon.png",
   "publisher": "xMIkeXeeioi",
   "repository": {
@@ -53,7 +53,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
