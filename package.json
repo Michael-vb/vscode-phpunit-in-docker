@@ -3,6 +3,7 @@
   "displayName": "PHPUnit in Docker",
   "description": "Run PHPUnit tests inside Docker containers",
   "version": "0.1.0",
+  "license": "MIT",
   "icon": "icon.png",
   "publisher": "xMIkeXeeioi",
   "repository": {
@@ -53,7 +54,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "publish:openvsx": "ovsx publish"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
@@ -66,6 +68,7 @@
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.16.0",
     "sinon": "^19.0.2",
+    "ovsx": "^0.10.0",
     "typescript": "^5.7.2"
   }
 }
